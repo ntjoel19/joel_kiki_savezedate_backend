@@ -17,22 +17,31 @@ const fs = require("fs");
 exports.signup = (req, res, next) => {
   // Here are defined all filled fields
   const user = {
-    nom_prenom: req.body.name,
-    categorie: req.body.categorie,
-    famille: req.body.famille,
-    id_epoux_e: req.body.id_epoux_e,
+    nom_prenoms: req.body.nom_prenoms,
+    phone: req.body.phone,
+    country_phone: req.body.country_phone,
   };
   // Here the request use "multer" management to be sent, and default values
-  let sql = `INSERT INTO user (nom_prenom, categorie, famille, id_epoux_e) VALUES (?,?,?,?);`;
-  pool.execute(
-    sql,
-    [user.nom_prenom, user.categorie, user.famille, user.id_epoux_e],
-    (err, result) => {
-      if (err) throw err;
+  let selectUser = `SELECT phone FROM user WHERE phone = ?`;
+  let sql = `INSERT INTO user (nom_prenoms, phone, country_phone) VALUES (?,?,?);`;
+  pool.execute(selectUser, [user.phone], (err, exists) => {
+    if (err) throw err;
+    if (exists.length === 0) {
+      pool.execute(
+        sql,
+        [user.nom_prenoms, user.phone, user.country_phone],
+        (err, result) => {
+          if (err) throw err;
 
-      res.status(201).json({ message: `utilisateur ajouté` });
+          res.status(201).json({ message: `utilisateur ajouté` });
+        }
+      );
+    } else {
+      res.status(500).json({
+        message: `Vous vous êtes récement enregistré avec ce numéro de téléphone`,
+      });
     }
-  );
+  });
 };
 
 //////////////////////////// Delete Fuction ////////////////////////////
